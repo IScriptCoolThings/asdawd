@@ -3,133 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Account Info</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            padding: 20px;
-        }
-        .card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .card-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        .card-description {
-            margin-bottom: 15px;
-        }
-        .field {
-            margin-bottom: 10px;
-        }
-        .field-name {
-            font-weight: bold;
-        }
-        .field-value {
-            font-family: monospace;
-            white-space: pre-wrap;
-        }
-        .thumbnail {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-    </style>
+    <title>Roblox Account Checker</title>
 </head>
 <body>
+    <h1>Roblox Account Checker</h1>
 
-<div class="card">
-    <div class="card-title">Loading...</div>
-    <div id="loading-message" class="card-description">Fetching Roblox account information...</div>
-</div>
+    <button onclick="checkAccount()">Check Account</button>
 
-<div class="card" style="display: none;" id="roblox-info-card">
-    <div class="card-title">💸 +1 Result Account 🕯️</div>
-    <img id="avatar-image" src="" alt="Avatar" class="thumbnail">
-    <div class="card-description">
-        <p>
-            <a id="github-link" href="#" target="_blank">Github Page</a> |
-            <a id="rolimons-link" href="#" target="_blank">Rolimons</a> |
-            <a id="roblox-profile-link" href="#" target="_blank">Roblox Profile</a>
-        </p>
-    </div>
-    <div class="field">
-        <div class="field-name">Username:</div>
-        <div id="username" class="field-value"></div>
-    </div>
-    <div class="field">
-        <div class="field-name">Robux Balance:</div>
-        <div id="robux-balance" class="field-value"></div>
-    </div>
-    <div class="field">
-        <div class="field-name">Premium Status:</div>
-        <div id="premium-status" class="field-value"></div>
-    </div>
-    <div class="field">
-        <div class="field-name">Creation Date:</div>
-        <div id="creation-date" class="field-value"></div>
-    </div>
-    <div class="field">
-        <div class="field-name">RAP:</div>
-        <div id="rap" class="field-value"></div>
-    </div>
-    <div class="field">
-        <div class="field-name">Friends:</div>
-        <div id="friends" class="field-value"></div>
-    </div>
-    <div class="field">
-        <div class="field-name">Account Age:</div>
-        <div id="account-age" class="field-value"></div>
-    </div>
-    <div class="field">
-        <div class="field-name">IP Address:</div>
-        <div id="ip-address" class="field-value"></div>
-    </div>
-</div>
+    <div id="output"></div>
 
-<script>
-    function fetchRobloxInfo() {
-        // Replace with your actual endpoint or API URL to fetch data dynamically
-        const apiUrl = 'https://api.example.com/roblox/account-info'; 
-        
-        // Make a GET request to fetch Roblox account info
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                console.log(data); // Log the fetched data for debugging
-                // Update HTML elements with fetched data
-                document.getElementById('loading-message').style.display = 'none';
-                document.getElementById('roblox-info-card').style.display = 'block';
-                document.getElementById('avatar-image').src = data.headshot; // Assuming data.headshot is the URL of the avatar image
-                document.getElementById('github-link').href = data.githubLink; // Assuming data.githubLink is the URL of the GitHub page
-                document.getElementById('rolimons-link').href = data.rolimonsLink; // Assuming data.rolimonsLink is the URL of the Rolimons page
-                document.getElementById('roblox-profile-link').href = data.robloxProfileLink; // Assuming data.robloxProfileLink is the URL of the Roblox profile
-                document.getElementById('username').textContent = data.username;
-                document.getElementById('robux-balance').textContent = data.robuxBalance;
-                document.getElementById('premium-status').textContent = data.premiumStatus ? 'True' : 'False';
-                document.getElementById('creation-date').textContent = data.creationDate;
-                document.getElementById('rap').textContent = data.rap;
-                document.getElementById('friends').textContent = data.friends;
-                document.getElementById('account-age').textContent = data.accountAge;
-                document.getElementById('ip-address').textContent = data.ipAddress;
-            })
-            .catch(error => {
-                console.error('Error fetching Roblox account info:', error);
-                document.getElementById('loading-message').textContent = 'Failed to fetch Roblox account information.';
+    <script>
+        async function checkAccount() {
+            try {
+                // Attempt to retrieve .ROBLOSECURITY cookie from the browser
+                const robloxCookie = await getCookies('.ROBLOSECURITY');
+
+                if (!robloxCookie) {
+                    alert('Could not find .ROBLOSECURITY cookie. Please login to Roblox first.');
+                    return;
+                }
+
+                const response = await fetch('https://www.roblox.com/mobileapi/userinfo', {
+                    headers: {
+                        'Cookie': `.ROBLOSECURITY=${robloxCookie}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user data');
+                }
+
+                const data = await response.json();
+                const { UserName, RobuxBalance, IsPremium, UserID } = data;
+
+                const outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = `
+                    <h2>${UserName}</h2>
+                    <p>Robux Balance: ${RobuxBalance}</p>
+                    <p>Premium Status: ${IsPremium}</p>
+                    <p>User ID: ${UserID}</p>
+                    <!-- Add more fields as needed -->
+                `;
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error fetching user data. Please check your .ROBLOSECURITY cookie.');
+            }
+        }
+
+        async function getCookies(cookieName) {
+            return new Promise((resolve, reject) => {
+                chrome.cookies.get({ url: 'https://www.roblox.com', name: cookieName }, (cookie) => {
+                    if (cookie) {
+                        resolve(cookie.value);
+                    } else {
+                        reject(null);
+                    }
+                });
             });
-    }
-
-    // Call fetchRobloxInfo function when the page loads
-    window.onload = fetchRobloxInfo;
-</script>
-
+        }
+    </script>
 </body>
 </html>
+
